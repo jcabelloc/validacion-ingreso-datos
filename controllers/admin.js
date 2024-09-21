@@ -1,10 +1,15 @@
+const { validationResult } = require('express-validator');
+
 const Producto = require('../models/producto');
 
 exports.getCrearProducto = (req, res, next) => {
   res.render('admin/editar-producto', { 
     titulo: 'Crear Producto',
-    path: '/admin/crear-producto',
+    path: '/admin/editar-producto',
     modoEdicion: false,
+    tieneError: false,
+    mensajeError: null,
+    erroresValidacion: []
   });
 };
 
@@ -13,6 +18,26 @@ exports.postCrearProducto = (req, res, next) => {
   const urlImagen = req.body.urlImagen;
   const precio = req.body.precio;
   const descripcion = req.body.descripcion;
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    console.log(errors.array());
+    return res.status(422).render('admin/editar-producto', {
+      titulo: 'Crear Product',
+      path: '/admin/editar-product',
+      modoEdicion: false,
+      tieneError: true,
+      mensajeError: errors.array()[0].msg,
+      erroresValidacion: errors.array(),
+      producto: {
+        nombre: nombre,
+        urlImagen: urlImagen,
+        precio: precio,
+        descripcion: descripcion
+      }
+    });
+  }
+
   const producto = new Producto({nombre: nombre, precio: precio, descripcion: descripcion, urlImagen: urlImagen, idUsuario: req.usuario._id
   });
   producto
@@ -41,8 +66,11 @@ exports.getEditarProducto = (req, res, next) => {
       res.render('admin/editar-producto', {
         titulo: 'Editar Producto',
         path: '/admin/edit-producto',
-        modoEdicion: true,
+        modoEdicion: modoEdicion,
         producto: producto,
+        tieneError: false,
+        mensajeError: null,
+        erroresValidacion: [],
       });
     })
   .catch(err => console.log(err));
@@ -55,6 +83,27 @@ exports.postEditarProducto = (req, res, next) => {
   const precio = req.body.precio;
   const urlImagen = req.body.urlImagen;
   const descripcion = req.body.descripcion;
+
+
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(422).render('admin/editar-producto', {
+      titulo: 'Editar Producto',
+      path: '/admin/editar-producto',
+      modoEdicion: true,
+      tieneError: true,
+      mensajeError: errors.array()[0].msg,
+      erroresValidacion: errors.array(),
+      producto: {
+        nombre: nombre,
+        urlImagen: urlImagen,
+        precio: precio,
+        descripcion: descripcion,
+        _id: idProducto
+      }
+    });
+  }
 
   Producto.findById(idProducto)
     .then(producto => {
