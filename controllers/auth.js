@@ -95,38 +95,27 @@ exports.postRegistrarse = (req, res, next) => {
       mensajeError: errors.array()[0].msg
     });
   }
-  
-  Usuario.findOne({ email: email })
-    .then(usuarioDoc => {
-      if (usuarioDoc) {
-        req.flash('error', 'El email ingresado ya existe');
-        return res.redirect('/registrarse');
-      }
-      return bcrypt
-        .hash(password, 12)
-        .then(hashedPassword => {
-          const usuario = new Usuario({
-            email: email,
-            password: hashedPassword,
-            carrito: { items: [] }
-          });
-          return usuario.save();
-        })
-        .then(result => {
-          res.redirect('/ingresar');
-          return transporter.sendMail({
-            to: email,
-            from: 'jcabelloc@itana.pe', // Corresponde al email verificado en Sendgrid
-            subject: 'Registro Exitoso!!',
-            html: '<h1>Se ha dado de alta satisfactoriamente!</h1>'
-          });
-        })
-        .catch(err => {
-          console.log(err);
-        });
+  bcrypt
+    .hash(password, 12)
+    .then(hashedPassword => {
+      const usuario = new Usuario({
+        email: email,
+        password: hashedPassword,
+        carrito: { items: [] }
+      });
+      return usuario.save();
+    })
+    .then(result => {
+      res.redirect('/ingresar');
+      return transporter.sendMail({
+        to: email,
+        from: 'jcabelloc@itana.pe', // Corresponde al email verificado en Sendgrid
+        subject: 'Registro Exitoso!!',
+        html: '<h1>Se ha dado de alta satisfactoriamente!</h1>'
+      });
     })
     .catch(err => {
-      console.log(err);
+      console.log(err)
     });
 };
 
