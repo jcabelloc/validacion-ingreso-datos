@@ -78,7 +78,8 @@ exports.getRegistrarse = (req, res, next) => {
     path: '/registrarse',
     titulo: 'Registrarse',
     autenticado: false,
-    mensajeError: mensaje
+    mensajeError: mensaje,
+    erroresValidacion: []
   });
 };
 
@@ -92,7 +93,8 @@ exports.postRegistrarse = (req, res, next) => {
     return res.status(422).render('auth/registrarse', {
       path: '/registrarse',
       titulo: 'registrarse',
-      mensajeError: errors.array()[0].msg
+      mensajeError: errors.array()[0].msg,
+      erroresValidacion: errors.array()
     });
   }
   bcrypt
