@@ -31,7 +31,12 @@ exports.getIngresar = (req, res, next) => {
     path: '/ingresar',
     titulo: 'Ingresar',
     autenticado: false,
-    mensajeError: mensaje
+    mensajeError: mensaje,
+    datosAnteriores: {
+      email: '',
+      password: ''
+    },
+    erroresValidacion: []
   });
 };
 
@@ -39,11 +44,33 @@ exports.getIngresar = (req, res, next) => {
 exports.postIngresar = (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).render('auth/ingresar', {
+      path: '/ingresar',
+      titulo: 'Ingresar',
+      mensajeError: errors.array()[0].msg,
+      datosAnteriores: {
+        email: email,
+        password: password
+      },
+      erroresValidacion: errors.array()
+    });
+  }
+
   Usuario.findOne({ email: email })
     .then(usuario => {
       if (!usuario) {
-        req.flash('error', 'Invalido email o password');
-        return res.redirect('/ingresar');
+        return res.status(422).render('auth/ingresar', {
+          path: '/ingresar',
+          titulo: 'Ingresar',
+          mensajeError: 'Invalido email o password.',
+          datosAnteriores: {
+            email: email,
+            password: password
+          },
+          erroresValidacion: []
+        });
       }
       bcrypt
         .compare(password, usuario.password)
@@ -56,8 +83,16 @@ exports.postIngresar = (req, res, next) => {
               res.redirect('/');
             });
           }
-          req.flash('error', 'Invalido email o password');
-          res.redirect('/ingresar');
+          return res.status(422).render('auth/ingresar', {
+            path: '/ingresar',
+            titulo: 'Ingresar',
+            mensajeError: 'Invalido email o password.',
+            datosAnteriores: {
+              email: email,
+              password: password
+            },
+            erroresValidacion: []
+          });
         })
         .catch(err => {
           console.log(err);
@@ -79,6 +114,11 @@ exports.getRegistrarse = (req, res, next) => {
     titulo: 'Registrarse',
     autenticado: false,
     mensajeError: mensaje,
+    datosAnteriores: {
+      email: '',
+      password: '',
+      passwordConfirmado: ''
+    },
     erroresValidacion: []
   });
 };
@@ -86,7 +126,6 @@ exports.getRegistrarse = (req, res, next) => {
 exports.postRegistrarse = (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
-  const passwordConfirmado = req.body.passwordConfirmado;
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     console.log(errors.array());
@@ -94,6 +133,11 @@ exports.postRegistrarse = (req, res, next) => {
       path: '/registrarse',
       titulo: 'registrarse',
       mensajeError: errors.array()[0].msg,
+      datosAnteriores: {
+        email: email,
+        password: password,
+        passwordConfirmado: req.body.passwordConfirmado
+      },
       erroresValidacion: errors.array()
     });
   }
