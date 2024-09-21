@@ -5,6 +5,9 @@ const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const sendgridTransport = require('nodemailer-sendgrid-transport');
 
+const { validationResult } = require('express-validator');
+
+
 const Usuario = require("../models/usuario");
 
 const transporter = nodemailer.createTransport(
@@ -83,6 +86,16 @@ exports.postRegistrarse = (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
   const passwordConfirmado = req.body.passwordConfirmado;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log(errors.array());
+    return res.status(422).render('auth/registrarse', {
+      path: '/registrarse',
+      titulo: 'registrarse',
+      mensajeError: errors.array()[0].msg
+    });
+  }
+  
   Usuario.findOne({ email: email })
     .then(usuarioDoc => {
       if (usuarioDoc) {
